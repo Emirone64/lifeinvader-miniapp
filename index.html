@@ -25,7 +25,7 @@
     }
     h1 { margin: 0 0 10px; font-size: 19px; letter-spacing: 1px; }
     p { margin: 0; color: #aaaab6; font-size: 14px; line-height: 1.55; }
-    #status { margin-top: 18px; color: #e8b65d; font-size: 13px; }
+    #status { margin-top: 18px; color: #e8b65d; font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
@@ -43,6 +43,40 @@
       const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzeKDHchL-YcAlEY1_elHcrypRtvP4EPRAfuyEG_0ZeBJPbM3vl3WXGTkRhyNrJvgIS/exec";
       const statusEl = document.getElementById("status");
       let attempts = 0;
+
+      function hasTelegramLaunchParam(searchOrHash) {
+        const raw = searchOrHash.startsWith("#")
+          ? searchOrHash.slice(1)
+          : searchOrHash.startsWith("?")
+            ? searchOrHash.slice(1)
+            : searchOrHash;
+        try {
+          return new URLSearchParams(raw).has("tgWebAppData");
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function showSafeDiagnostics(webApp, initData) {
+        const sdkFound = !!webApp;
+        const version = sdkFound && webApp.version ? String(webApp.version) : "нет";
+        const platform = sdkFound && webApp.platform ? String(webApp.platform) : "нет";
+        const queryHasData = hasTelegramLaunchParam(window.location.search);
+        const hashHasData = hasTelegramLaunchParam(window.location.hash);
+        const unsafeUserPresent = !!(webApp && webApp.initDataUnsafe && webApp.initDataUnsafe.user);
+
+        statusEl.textContent =
+          "Диагностика запуска (без секретных данных): " +
+          "SDK: " + (sdkFound ? "найден" : "не найден") +
+          "; версия: " + version +
+          "; платформа: " + platform +
+          "; длина initData: " + initData.length +
+          "; initDataUnsafe.user: " + (unsafeUserPresent ? "есть" : "нет") +
+          "; tgWebAppData в адресе: " + ((queryHasData || hashHasData) ? "есть" : "нет") +
+          " (query: " + (queryHasData ? "да" : "нет") +
+          ", hash: " + (hashHasData ? "да" : "нет") + "). " +
+          "Пришли только этот диагностический текст.";
+      }
 
       function launch() {
         attempts += 1;
@@ -72,8 +106,7 @@
           return;
         }
 
-        statusEl.textContent =
-          "Telegram не передал данные запуска. Закрой страницу и открой Lifeinvader кнопкой меню внутри чата с ботом.";
+        showSafeDiagnostics(webApp, initData);
       }
 
       launch();
