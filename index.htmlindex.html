@@ -1,0 +1,424 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Lifeinvader Assistant</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #11121a;
+            --card: #1b1c28;
+            --card-light: #242535;
+            --border: rgba(255,255,255,.075);
+            --text: #f5f5fa;
+            --muted: #9293a5;
+            --accent: #ed497d;
+            --accent-light: #ff719b;
+            --green: #49cf91;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background:
+                radial-gradient(
+                    circle at 90% 0%,
+                    rgba(237,73,125,.14),
+                    transparent 35%
+                ),
+                var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont,
+                         "Segoe UI", Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 24px 18px 35px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 27px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 15px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #f24d83, #a92d68);
+            font-size: 26px;
+            font-weight: 900;
+            box-shadow: 0 7px 25px rgba(237,73,125,.25);
+        }
+
+        .brand {
+            flex: 1;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 17px;
+            letter-spacing: 1.3px;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        .version {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .welcome {
+            position: relative;
+            overflow: hidden;
+            padding: 23px;
+            border-radius: 19px;
+            background: linear-gradient(125deg, #412338, #252034);
+            border: 1px solid rgba(237,73,125,.25);
+            margin-bottom: 23px;
+        }
+
+        .welcome::after {
+            content: "L";
+            position: absolute;
+            right: 13px;
+            bottom: -35px;
+            font-size: 155px;
+            font-weight: 900;
+            color: rgba(255,255,255,.045);
+        }
+
+        .welcome-label {
+            color: #ff8eb0;
+            font-size: 10px;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .welcome h2 {
+            margin: 11px 0 7px;
+            font-size: 23px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome p {
+            margin: 0;
+            max-width: 260px;
+            color: #c5b7c5;
+            font-size: 13px;
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 25px 2px 13px;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .section-title span {
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 11px;
+        }
+
+        .card {
+            min-width: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 16px;
+        }
+
+        .stat-card {
+            min-height: 105px;
+        }
+
+        .stat-icon {
+            font-size: 19px;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 23px;
+            font-weight: 750;
+        }
+
+        .stat-label {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .control-list {
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .control {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 16px;
+            border-radius: 14px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            transition: .18s;
+        }
+
+        .control:active {
+            transform: scale(.98);
+            background: var(--card-light);
+        }
+
+        .control-icon {
+            flex-shrink: 0;
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--card-light);
+            font-size: 20px;
+        }
+
+        .control-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .control-info strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .control-info small {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .arrow {
+            color: var(--muted);
+            font-size: 20px;
+        }
+
+        .warning {
+            margin-top: 23px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(232,182,93,.17);
+            background: rgba(232,182,93,.07);
+            color: #d8bd83;
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
+        .footer {
+            margin-top: 27px;
+            text-align: center;
+            color: #666879;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        .stop-button .control-icon {
+            background: rgba(232,73,105,.13);
+        }
+
+        .stop-button .control-info strong {
+            color: #ff8296;
+        }
+
+        .preview-label {
+            display: none;
+            margin-top: 15px;
+            text-align: center;
+            color: #d6ae71;
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <header class="header">
+        <div class="logo">L</div>
+
+        <div class="brand">
+            <h1>LIFEINVADER</h1>
+            <p>REMOTE CONTROL PANEL</p>
+        </div>
+
+        <div class="version">v1.0</div>
+    </header>
+
+    <section class="welcome">
+        <span class="welcome-label">LIFEINVADER WORKSPACE</span>
+        <h2>Привет!</h2>
+        <p>
+            Панель управления твоим Lifeinvader.
+            Все основные инструменты в одном месте.
+        </p>
+    </section>
+
+    <div class="section-title">
+        <h3>Быстрый доступ</h3>
+        <span>УПРАВЛЕНИЕ</span>
+    </div>
+
+    <div class="control-list">
+
+        <button class="control" onclick="sendAction('status')">
+            <div class="control-icon">🖥</div>
+            <div class="control-info">
+                <strong>Состояние системы</strong>
+                <small>Проверить подключение компьютера</small>
+            </div>
+            <span class="arrow">›</span>
+        </button>
+
+        <button class="control" onclick="sendAction('stats')">
+            <div class="control-icon">📊</div>
+            <div class="control-info">
+                <strong>Статистика</strong>
+                <small>Обработанные объявления и история</small>
+            </div>
+            <span class="arrow">›</span>
+        </button>
+
+        <button class="control" onclick="sendAction('sheets')">
+            <div class="control-icon">📄</div>
+            <div class="control-info">
+                <strong>Google Sheets</strong>
+                <small>Просмотр состояния и обновление таблиц</small>
+            </div>
+            <span class="arrow">›</span>
+        </button>
+
+        <button class="control" onclick="sendAction('automation')">
+            <div class="control-icon">⚡</div>
+            <div class="control-info">
+                <strong>Автоматизация</strong>
+                <small>Перейти к управлению процессами</small>
+            </div>
+            <span class="arrow">›</span>
+        </button>
+
+        <button class="control stop-button"
+                onclick="confirmStop()">
+            <div class="control-icon">⏹</div>
+            <div class="control-info">
+                <strong>Остановить автоматизацию</strong>
+                <small>Остановить текущую обработку</small>
+            </div>
+            <span class="arrow">›</span>
+        </button>
+
+    </div>
+
+    <div class="warning">
+        🔒 Удалённый запуск автоматизации пока отключён.
+        Управление доступно только для разрешённого Telegram-аккаунта.
+    </div>
+
+    <div id="previewLabel" class="preview-label">
+        Предварительный просмотр — команды доступны после подключения Telegram.
+    </div>
+
+    <footer class="footer">
+        LIFEINVADER DESKTOP • REMOTE CONTROL
+    </footer>
+
+</div>
+
+<script>
+    const tg = window.Telegram?.WebApp;
+
+    if (tg) {
+        tg.ready();
+        tg.expand();
+
+        try {
+            tg.setHeaderColor("#11121a");
+            tg.setBackgroundColor("#11121a");
+        } catch (error) {
+            console.log("Не удалось настроить цвета Telegram:", error);
+        }
+    } else {
+        document.getElementById("previewLabel").style.display = "block";
+    }
+
+    function sendAction(action) {
+        if (!tg || typeof tg.sendData !== "function") {
+            alert("Открой эту страницу через Telegram Mini App.");
+            return;
+        }
+
+        tg.sendData(JSON.stringify({
+            action: action
+        }));
+    }
+
+    function confirmStop() {
+        const message = "Остановить автоматизацию на компьютере?";
+
+        if (tg && typeof tg.showConfirm === "function") {
+            tg.showConfirm(message, function(confirmed) {
+                if (confirmed) {
+                    sendAction("stop");
+                }
+            });
+        } else if (confirm(message)) {
+            sendAction("stop");
+        }
+    }
+</script>
+
+</body>
+</html>
