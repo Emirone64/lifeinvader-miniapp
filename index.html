@@ -44,38 +44,41 @@
       const statusEl = document.getElementById("status");
       let attempts = 0;
 
-      function hasTelegramLaunchParam(searchOrHash) {
+      function hasTelegramLaunchParam(searchOrHash, paramName) {
         const raw = searchOrHash.startsWith("#")
           ? searchOrHash.slice(1)
           : searchOrHash.startsWith("?")
             ? searchOrHash.slice(1)
             : searchOrHash;
         try {
-          return new URLSearchParams(raw).has("tgWebAppData");
+          return new URLSearchParams(raw).has(paramName);
         } catch (_) {
           return false;
         }
+      }
+
+      function hasLaunchParam(paramName) {
+        return hasTelegramLaunchParam(window.location.search, paramName) ||
+          hasTelegramLaunchParam(window.location.hash, paramName);
       }
 
       function showSafeDiagnostics(webApp, initData) {
         const sdkFound = !!webApp;
         const version = sdkFound && webApp.version ? String(webApp.version) : "нет";
         const platform = sdkFound && webApp.platform ? String(webApp.platform) : "нет";
-        const queryHasData = hasTelegramLaunchParam(window.location.search);
-        const hashHasData = hasTelegramLaunchParam(window.location.hash);
         const unsafeUserPresent = !!(webApp && webApp.initDataUnsafe && webApp.initDataUnsafe.user);
 
         statusEl.textContent =
           "Диагностика запуска (без секретных данных): " +
           "SDK: " + (sdkFound ? "найден" : "не найден") +
-          "; версия: " + version +
-          "; платформа: " + platform +
+          "; версия SDK Telegram: " + (hasLaunchParam("tgWebAppVersion") ? "параметр есть" : "параметра нет") +
+          "; платформа в URL: " + (hasLaunchParam("tgWebAppPlatform") ? "параметр есть" : "параметра нет") +
+          "; данные запуска в URL: " + (hasLaunchParam("tgWebAppData") ? "параметр есть" : "параметра нет") +
+          "; версия WebApp: " + version +
+          "; платформа WebApp: " + platform +
           "; длина initData: " + initData.length +
           "; initDataUnsafe.user: " + (unsafeUserPresent ? "есть" : "нет") +
-          "; tgWebAppData в адресе: " + ((queryHasData || hashHasData) ? "есть" : "нет") +
-          " (query: " + (queryHasData ? "да" : "нет") +
-          ", hash: " + (hashHasData ? "да" : "нет") + "). " +
-          "Пришли только этот диагностический текст.";
+          ". Пришли только этот диагностический текст.";
       }
 
       function launch() {
